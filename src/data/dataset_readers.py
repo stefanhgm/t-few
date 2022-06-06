@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import yaml
 from datasets import load_dataset, load_from_disk
 from promptsource.templates import DatasetTemplates
 import pkg_resources
@@ -36,11 +37,12 @@ def get_dataset_reader(config):
         "tweet_eval_hate": RaftReader,
         "twitter_complaints": RaftReader,
         "semiconductor_org_types": RaftReader,
+        "eol_small_note_generation-n_important_conditions_visits_num_concepts-10": NoteBinaryReader,
     }[config.dataset]
     return dataset_class(config)
 
 
-DATASETS_OFFLINE = "/fruitbasket/datasets/datasets_offline"
+DATASETS_OFFLINE = "/data/IBC/stefan_ibc/omop-pkg/datasets"
 MAX_EXAMPLES_PER_DATASET = 500_000
 TASK_BLACKLIST = [
     # Tasks which often tokenize to > 1024 tokens currently
@@ -141,7 +143,10 @@ class BaseDatasetReader(object):
         :param split: split of data
         """
         if os.path.exists(DATASETS_OFFLINE):
-            orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, *self.dataset_stash))[split]
+            try:
+                orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, *self.dataset_stash))[split]
+            except FileNotFoundError:
+                orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))[split]
         else:
             orig_data = load_dataset(*self.dataset_stash, split=split, cache_dir=os.environ["HF_HOME"])
         return orig_data
@@ -183,6 +188,23 @@ class BaseDatasetReader(object):
         accuracy = sum(matching) / len(matching)
         return {"accuracy": accuracy}
 
+
+class NoteBinaryReader(BaseDatasetReader):
+    def __init__(self, config):
+        super().__init__(config, dataset_stash=(config.dataset, "nine_months"))
+
+    # There are no pre-defined templates for this custom task, so load them manually by hijacking this function.
+    def get_template(self, template_idx):
+        # Add custom template
+        task = self.config.dataset.split('_')[0]
+        yaml_dict = yaml.load(open('/data/IBC/stefan_ibc/omop-pkg/templates/templates_' + task + '.yaml', "r"),
+                              Loader=yaml.FullLoader)
+        prompts = yaml_dict['templates']
+
+        # Set DatasetTemplates object in self.templates to None bs cannot build it here
+        self.templates = None
+        # Return a list of prompts (usually only a single one with dataset_stash[1] name)
+        return [t for k, t in prompts.items() if t.get_name() == self.dataset_stash[1]]
 
 class StoryClozeReader(BaseDatasetReader):
     def __init__(self, config):
