@@ -4,12 +4,12 @@ results/
 lib/
 output/
 data/
+src/exp_out
 pretrained_models
 pretrained_models/
 .idea/
 eche_
 runs/
-exp_out/
 exp_probs/
 *.pyc
 slurm*

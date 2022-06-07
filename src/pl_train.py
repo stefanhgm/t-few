@@ -15,11 +15,11 @@ from src.utils.util import ParseKwargs, set_seeds
 
 def get_transformer(config):
     tokenizer = AutoTokenizer.from_pretrained(config.origin_model)
-    model = AutoModelForSeq2SeqLM.from_pretrained(config.origin_model, low_cpu_mem_usage=True)
+    # model = AutoModelForSeq2SeqLM.from_pretrained(config.origin_model, low_cpu_mem_usage=True)
 
     tokenizer.model_max_length = config.max_seq_len
-    model = modify_transformer(model, config)
-    return tokenizer, model
+    # model = modify_transformer(model, config)
+    return tokenizer, None  # model
 
 
 def main(config):

@@ -38,6 +38,7 @@ def get_dataset_reader(config):
         "twitter_complaints": RaftReader,
         "semiconductor_org_types": RaftReader,
         "eol_small_note_generation-n_important_conditions_visits_num_concepts-10": NoteBinaryReader,
+        "income": NoteBinaryReader
     }[config.dataset]
     return dataset_class(config)
 
@@ -191,12 +192,17 @@ class BaseDatasetReader(object):
 
 class NoteBinaryReader(BaseDatasetReader):
     def __init__(self, config):
-        super().__init__(config, dataset_stash=(config.dataset, "nine_months"))
+        task = config.dataset.split('_')[0].lower()
+        # Select correct subtask (especially for right template)
+        subtask = "nine_months"
+        if task == "income":
+            subtask = "100000_dollars"
+        super().__init__(config, dataset_stash=(config.dataset, subtask))
 
     # There are no pre-defined templates for this custom task, so load them manually by hijacking this function.
     def get_template(self, template_idx):
         # Add custom template
-        task = self.config.dataset.split('_')[0]
+        task = self.config.dataset.split('_')[0].lower()
         yaml_dict = yaml.load(open('/data/IBC/stefan_ibc/omop-pkg/templates/templates_' + task + '.yaml', "r"),
                               Loader=yaml.FullLoader)
         prompts = yaml_dict['templates']
