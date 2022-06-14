@@ -64,6 +64,7 @@ class EncoderDecoder(LightningModule):
                 .view(bs, num_choices, -1)
                 .sum(dim=-1)
             )
+            # TODO: Length normalization
             if self.config.length_norm > 0:
                 choices_scores = choices_scores / torch.pow(
                     (choices_ids != self.tokenizer.pad_token_id).sum(dim=-1), self.config.length_norm
@@ -76,6 +77,7 @@ class EncoderDecoder(LightningModule):
             )
 
             tensorboard_logs = {"lm_loss": lm_loss.item()}
+            # TODO: I think mc loss corresponds to the LN-loss which is a softmax-cross entropy loss for length normalized output sequences
             if self.config.mc_loss > 0:
                 mc_loss = F.cross_entropy(-choices_scores, labels)
                 tensorboard_logs["mc_loss"] = mc_loss.item()
@@ -156,6 +158,7 @@ class EncoderDecoder(LightningModule):
                 .view(bs, num_choices, -1)
                 .sum(dim=-1)
             )
+            # TODO: Length normalization
             if self.config.length_norm > 0:
                 choices_scores = choices_scores / torch.pow(
                     (choices_ids != self.tokenizer.pad_token_id).sum(dim=-1), self.config.length_norm
@@ -211,11 +214,19 @@ class EncoderDecoder(LightningModule):
             pred_score, prediction = choices_scores.min(dim=1)
 
         score_gt = choices_scores[range(bs), labels]
+
+        # Infer "pseudo" probs for choices
+        probs = torch.exp(-choices_scores)
+        probs = torch.divide(probs, (torch.sum(probs, dim=-1)).repeat(num_choices, 1).permute(1, 0))
+
+        # TODO: Careful choices_scores are changed here (so that label scores are replaced by maximum)
+        # TODO: Choices scores are length normalized, but seems fine since they are also using them for predictions.
         choices_scores[range(bs), labels] = choices_scores.max(dim=-1)[0]
         score_cand = choices_scores.min(dim=-1)[0]
 
         batch_output = {
             "prediction": prediction.tolist(),
+            "probabilities": probs.tolist(),
             "label": labels.tolist(),
             "idx": batch["idx"].tolist(),
             "log.score_gt": score_gt.tolist(),

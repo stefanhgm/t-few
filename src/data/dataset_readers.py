@@ -10,6 +10,7 @@ import csv
 from typing import Dict, List, Optional, Tuple
 import re
 import pandas as pd
+from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
 
 
 def get_dataset_reader(config):
@@ -37,8 +38,17 @@ def get_dataset_reader(config):
         "tweet_eval_hate": RaftReader,
         "twitter_complaints": RaftReader,
         "semiconductor_org_types": RaftReader,
-        "eol_small_note_generation-n_important_conditions_visits_num_concepts-10": NoteBinaryReader,
-        "income": NoteBinaryReader
+        "eol_important_c_v_10": NoteBinaryReader,
+        "eol_important_c_v_20": NoteBinaryReader,
+        "eol_important_c_v_999": NoteBinaryReader,
+        "loh_important_c_v_10": NoteBinaryReader,
+        "loh_important_c_v_20": NoteBinaryReader,
+        "loh_important_c_v_999": NoteBinaryReader,
+        "surgery_important_c_v_10": NoteBinaryReader,
+        "surgery_important_c_v_20": NoteBinaryReader,
+        "surgery_important_c_v_999": NoteBinaryReader,
+        "income": NoteBinaryReader,
+        "car": NoteBinaryReader
     }[config.dataset]
     return dataset_class(config)
 
@@ -125,7 +135,6 @@ class BaseDatasetReader(object):
                 if self.templates[template_name].metadata.original_task:
                     list_idx.append(idx)
                     list_templates.append(self.templates[template_name])
-            print(list_idx)
 
             return list_templates
         elif template_idx == -2:
@@ -194,9 +203,14 @@ class NoteBinaryReader(BaseDatasetReader):
     def __init__(self, config):
         task = config.dataset.split('_')[0].lower()
         # Select correct subtask (especially for right template)
-        subtask = "nine_months"
-        if task == "income":
+        subtask = None
+        if task in ['eol', 'loh', 'surgery']:
+            subtask = "nine_months"
+        elif task == 'income':
             subtask = "100000_dollars"
+        elif task == 'car':
+            subtask = "rate_decision"
+        assert subtask is not None
         super().__init__(config, dataset_stash=(config.dataset, subtask))
 
     # There are no pre-defined templates for this custom task, so load them manually by hijacking this function.
@@ -211,6 +225,41 @@ class NoteBinaryReader(BaseDatasetReader):
         self.templates = None
         # Return a list of prompts (usually only a single one with dataset_stash[1] name)
         return [t for k, t in prompts.items() if t.get_name() == self.dataset_stash[1]]
+
+    def read_orig_dataset(self, split):
+        orig_data = super().read_orig_dataset(split)
+
+        # Set custom cap on validation set size to increase speed
+        max_validation_examples = 10_000
+        if split == 'validation' and orig_data.num_rows > max_validation_examples:
+            old_size = orig_data.num_rows
+            orig_data = orig_data.shuffle(seed=self.config.seed)
+            orig_data = orig_data.select(range(0, max_validation_examples))
+            print(f"Found validation set of size {old_size}, shuffled and decreased it to {orig_data.num_rows}")
+            assert orig_data.num_rows == max_validation_examples
+
+        # In case dataset has no idx per example, add that here bc manually created ones might not have an idx.
+        if 'idx' not in orig_data.column_names:
+            orig_data = orig_data.add_column(name='idx', column=range(0, orig_data.num_rows))
+
+        return orig_data
+
+    def compute_metric(self, accumulated):
+        metrics = super().compute_metric(accumulated)
+
+        binary = all([True if l in [0, 1] else False for l in accumulated['label']])
+        if binary:
+            pos_probs = [p[1] for p in accumulated['probabilities']]
+            roc_auc = roc_auc_score(accumulated["label"], pos_probs)
+            pr_auc = pr_auc_score(accumulated["label"], pos_probs)
+            metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
+        return metrics
+
+
+def pr_auc_score(labels, probabilities):
+    precision, recall, _ = precision_recall_curve(labels, probabilities)
+    return auc(recall, precision)
+
 
 class StoryClozeReader(BaseDatasetReader):
     def __init__(self, config):

@@ -3,5 +3,5 @@
     "origin_model": "bigscience/T0",
     "compute_precision": "bf16",
     "compute_strategy": "none",
-    "allow_skip_exp":false
+    "allow_skip_exp":true
 }

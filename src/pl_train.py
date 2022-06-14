@@ -15,11 +15,11 @@ from src.utils.util import ParseKwargs, set_seeds
 
 def get_transformer(config):
     tokenizer = AutoTokenizer.from_pretrained(config.origin_model)
-    # model = AutoModelForSeq2SeqLM.from_pretrained(config.origin_model, low_cpu_mem_usage=True)
+    model = AutoModelForSeq2SeqLM.from_pretrained(config.origin_model, low_cpu_mem_usage=True)
 
     tokenizer.model_max_length = config.max_seq_len
-    # model = modify_transformer(model, config)
-    return tokenizer, None  # model
+    model = modify_transformer(model, config)
+    return tokenizer, model
 
 
 def main(config):
@@ -73,6 +73,13 @@ if __name__ == "__main__":
         config.num_steps = config.num_shot
         config.eval_before_training = False
         config.fishmask_path = None
+
+    # TODO: For special case in my experience of considerably high num_shot size, decrease eval_epoch_interval
+    if config.num_shot >= 64:
+        new_eval_epoch_interval = int(1600 / config.num_shot)  # 50 for num_shots 32
+        new_eval_epoch_interval = 1 if new_eval_epoch_interval < 1 else new_eval_epoch_interval
+        print(f"Set eval_epoch_interval from {config.eval_epoch_interval} to {new_eval_epoch_interval}")
+        config.eval_epoch_interval = new_eval_epoch_interval
 
     print(config.to_json())
 
