@@ -13,6 +13,12 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
 
 
+def is_custom_task(cfg):
+    task = cfg.dataset.split('_')[0].lower()
+    if task in ['eol', 'loh', 'surgery', 'income', 'car']:
+        return True
+
+
 def get_dataset_reader(config):
     dataset_class = {
         "T0Mixture": T0MixtureReader,
@@ -227,6 +233,9 @@ class NoteBinaryReader(BaseDatasetReader):
         return [t for k, t in prompts.items() if t.get_name() == self.dataset_stash[1]]
 
     def read_orig_dataset(self, split):
+        # To verify performance of best validation run
+        # if split == 'test':
+        #     split = 'validation'
         orig_data = super().read_orig_dataset(split)
 
         # Set custom cap on validation set size to increase speed
@@ -253,6 +262,8 @@ class NoteBinaryReader(BaseDatasetReader):
             roc_auc = roc_auc_score(accumulated["label"], pos_probs)
             pr_auc = pr_auc_score(accumulated["label"], pos_probs)
             metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
+        # Also record number of instances evaluated
+        metrics = {**metrics, 'num': len(accumulated)}
         return metrics
 
 

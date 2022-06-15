@@ -44,9 +44,20 @@ def make_result_table(args):
             # return tuple(elements[:3] + ["_".join(elements[3:])])
             return results
 
+        def read_test_results(fname):
+            fname = fname.replace('dev_scores.json', 'test_scores.json')
+            if not os.path.exists(fname):
+                return {}
+            with open(fname) as f:
+                results = json.loads(f.readlines()[-1])
+                keys = list(results.keys())
+                for k in keys:
+                    results[k + '_test'] = results.pop(k)
+            return results
+
         results = []
         for fname in all_files:
-            result = {**(parse_expname(fname)), **(read_results(fname))}
+            result = {**(parse_expname(fname)), **(read_results(fname)), **(read_test_results(fname))}
             results.append(result)
             # Return all results collected for one type of datasets
         return results

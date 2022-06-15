@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from pytorch_lightning import LightningDataModule
 
+from src.data.dataset_readers import is_custom_task
+
 
 class FinetuneDataModule(LightningDataModule):
     def __init__(self, config, tokenizer, dataset_reader):
@@ -33,6 +35,13 @@ class FinetuneDataModule(LightningDataModule):
         print(f"Train size {len(self.train_dataset)}")
         print(f"Eval size {len(self.dev_dataset)}")
 
+        if is_custom_task(self.config):
+            self.test_dataset = self.dataset_reader.read_orig_dataset("test")
+            self.test_dataset = FinetuneDatasetWithTemplate(
+                self.test_dataset, self.dataset_reader.get_eval_template(), self.tokenizer
+            )
+            print(f"Test size {len(self.test_dataset)}")
+
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
             self.train_dataset,
@@ -46,6 +55,15 @@ class FinetuneDataModule(LightningDataModule):
     def val_dataloader(self):
         return torch.utils.data.DataLoader(
             self.dev_dataset,
+            batch_size=self.config.eval_batch_size,
+            shuffle=False,
+            collate_fn=create_collate_fn(self.tokenizer.pad_token_id, pretrain=False),
+            num_workers=min([self.config.eval_batch_size, self.config.num_workers]),
+        )
+
+    def test_dataloader(self):
+        return torch.utils.data.DataLoader(
+            self.test_dataset,
             batch_size=self.config.eval_batch_size,
             shuffle=False,
             collate_fn=create_collate_fn(self.tokenizer.pad_token_id, pretrain=False),

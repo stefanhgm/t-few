@@ -7,6 +7,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.data import FinetuneDataModule, get_dataset_reader, PretrainDataModule
+from src.data.dataset_readers import is_custom_task
 from src.models.EncoderDecoder import EncoderDecoder
 from src.models.modify_model import modify_transformer
 from src.utils.Config import Config
@@ -55,6 +56,9 @@ def main(config):
         gradient_clip_val=config.grad_clip_norm,
     )
     trainer.fit(model, datamodule)
+
+    if is_custom_task(config):
+        trainer.test(model, datamodule)
 
 
 if __name__ == "__main__":
