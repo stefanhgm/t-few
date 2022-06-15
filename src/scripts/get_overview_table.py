@@ -34,8 +34,13 @@ def make_result_table(args):
             results = {}
             results['model'] = elements[0]
             results['dataset'] = elements[1]
-            results['seed'] = int(([e for e in elements if e.startswith('seed')][0])[4:])
+            numshot = int(([e for e in elements if e.startswith('numshot')][0])[len('numshot'):])
+            elements.remove('numshot' + str(numshot))
+            seed = int(([e for e in elements if e.startswith('seed')][0])[len('seed'):])
+            elements.remove('seed' + str(seed))
             results['spec'] = '_'.join([e for e in elements if e not in results.values()])
+            results['numshot'] = numshot
+            results['seed'] = seed
             # return tuple(elements[:3] + ["_".join(elements[3:])])
             return results
 
@@ -52,7 +57,7 @@ def make_result_table(args):
 
     output_fname = os.path.join(os.getenv("OUTPUT_PATH", default="exp_out"), "overview.csv")
     output_csv = pd.DataFrame(results)
-    output_csv.to_csv(output_fname)
+    output_csv.to_csv(output_fname, float_format='%.4f')
     print(f"Save result to {output_fname}")
 
 
