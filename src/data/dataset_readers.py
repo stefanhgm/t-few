@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import yaml
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset, load_from_disk, concatenate_datasets
 from promptsource.templates import DatasetTemplates
 import pkg_resources
 from promptsource import templates
@@ -44,15 +44,42 @@ def get_dataset_reader(config):
         "tweet_eval_hate": RaftReader,
         "twitter_complaints": RaftReader,
         "semiconductor_org_types": RaftReader,
-        "eol_important_c_v_10": NoteBinaryReader,
-        "eol_important_c_v_20": NoteBinaryReader,
-        "eol_important_c_v_999": NoteBinaryReader,
-        "loh_important_c_v_10": NoteBinaryReader,
-        "loh_important_c_v_20": NoteBinaryReader,
-        "loh_important_c_v_999": NoteBinaryReader,
-        "surgery_important_c_v_10": NoteBinaryReader,
-        "surgery_important_c_v_20": NoteBinaryReader,
-        "surgery_important_c_v_999": NoteBinaryReader,
+        "eol_important_v_c_10": NoteBinaryReader,
+        "eol_important_v_c_20": NoteBinaryReader,
+        "eol_important_v_c_999": NoteBinaryReader,
+        "loh_important_v_c_10": NoteBinaryReader,
+        "loh_important_v_c_20": NoteBinaryReader,
+        "loh_important_v_c_999": NoteBinaryReader,
+        "surgery_important_v_c_10": NoteBinaryReader,
+        "surgery_important_v_c_20": NoteBinaryReader,
+        "surgery_important_v_c_999": NoteBinaryReader,
+        "eol_important_v_c_10_balanced": NoteBinaryReader,
+        "eol_important_v_c_20_balanced": NoteBinaryReader,
+        "eol_important_v_c_999_balanced": NoteBinaryReader,
+        "loh_important_v_c_10_balanced": NoteBinaryReader,
+        "loh_important_v_c_20_balanced": NoteBinaryReader,
+        "loh_important_v_c_999_balanced": NoteBinaryReader,
+        "surgery_important_v_c_10_balanced": NoteBinaryReader,
+        "surgery_important_v_c_20_balanced": NoteBinaryReader,
+        "surgery_important_v_c_999_balanced": NoteBinaryReader,
+        "eol_important_v_c_p_10": NoteBinaryReader,
+        "eol_important_v_c_p_20": NoteBinaryReader,
+        "eol_important_v_c_p_999": NoteBinaryReader,
+        "loh_important_v_c_p_10": NoteBinaryReader,
+        "loh_important_v_c_p_20": NoteBinaryReader,
+        "loh_important_v_c_p_999": NoteBinaryReader,
+        "surgery_important_v_c_p_10": NoteBinaryReader,
+        "surgery_important_v_c_p_20": NoteBinaryReader,
+        "surgery_important_v_c_p_999": NoteBinaryReader,
+        "eol_important_v_c_p_10_balanced": NoteBinaryReader,
+        "eol_important_v_c_p_20_balanced": NoteBinaryReader,
+        "eol_important_v_c_p_999_balanced": NoteBinaryReader,
+        "loh_important_v_c_p_10_balanced": NoteBinaryReader,
+        "loh_important_v_c_p_20_balanced": NoteBinaryReader,
+        "loh_important_v_c_p_999_balanced": NoteBinaryReader,
+        "surgery_important_v_c_p_10_balanced": NoteBinaryReader,
+        "surgery_important_v_c_p_20_balanced": NoteBinaryReader,
+        "surgery_important_v_c_p_999_balanced": NoteBinaryReader,
         "income": NoteBinaryReader,
         "car": NoteBinaryReader
     }[config.dataset]
@@ -252,6 +279,42 @@ class NoteBinaryReader(BaseDatasetReader):
             orig_data = orig_data.add_column(name='idx', column=range(0, orig_data.num_rows))
 
         return orig_data
+
+    def _sample_few_shot_data(self, orig_data):
+        saved_random_state = np.random.get_state()
+        np.random.seed(self.config.few_shot_random_seed)
+        # Create a balanced dataset for categorical data!
+        labels = {label: len([ex['idx'] for ex in orig_data if ex['label'] == label])
+                  for label in list(set(ex['label'] for ex in orig_data))}
+        num_labels = len(labels.keys())
+        ex_label = int(self.config.num_shot / num_labels)
+        ex_last_label = self.config.num_shot - ((num_labels - 1) * ex_label)
+        ex_per_label = (num_labels - 1) * [ex_label] + [ex_last_label]
+        assert sum(ex_per_label) == self.config.num_shot
+
+        # Select num instances per label
+        old_num_labels = []
+        datasets_per_label = []
+        for i, label in enumerate(labels.keys()):
+            indices = [ex['idx'] for ex in orig_data if ex['label'] == label]
+            old_num_labels.append(len(indices))
+            # Sample with replacement from label indices
+            samples_indices = list(np.random.choice(indices, ex_per_label[i]))
+            datasets_per_label.append(orig_data.select(samples_indices))
+        orig_data = concatenate_datasets(datasets_per_label)
+
+        # Check new labels
+        old_labels = labels
+        labels = {label: len([ex['idx'] for ex in orig_data if ex['label'] == label])
+                  for label in list(set(ex['label'] for ex in orig_data))}
+        print(f"Via sampling with replacement old label distribution {old_labels} to new {labels}")
+        assert sum(labels.values()) == self.config.num_shot
+        assert len(orig_data) == self.config.num_shot
+
+        np.random.set_state(saved_random_state)
+        # Now randomize and (selection of num_shots redundant now bc already done).
+        return super()._sample_few_shot_data(orig_data)
+
 
     def compute_metric(self, accumulated):
         metrics = super().compute_metric(accumulated)
