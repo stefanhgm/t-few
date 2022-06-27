@@ -77,14 +77,6 @@ if __name__ == "__main__":
         config.num_steps = config.num_shot
         config.eval_before_training = False
         config.fishmask_path = None
-
-    # TODO: For special case in my experience of considerably high num_shot size, decrease eval_epoch_interval
-    if config.num_shot >= 64:
-        new_eval_epoch_interval = int(1600 / config.num_shot)  # 50 for num_shots 32
-        new_eval_epoch_interval = 1 if new_eval_epoch_interval < 1 else new_eval_epoch_interval
-        print(f"Set eval_epoch_interval from {config.eval_epoch_interval} to {new_eval_epoch_interval}")
-        config.eval_epoch_interval = new_eval_epoch_interval
-
     print(config.to_json())
 
     if config.allow_skip_exp and os.path.exists(config.finish_flag_file):
