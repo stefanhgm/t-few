@@ -68,6 +68,7 @@ def make_result_table(args):
 
     output_fname = os.path.join(os.getenv("OUTPUT_PATH", default="exp_out"), "overview.csv")
     output_csv = pd.DataFrame(results)
+    output_csv = output_csv.sort_values(['model', 'dataset', 'spec', 'numshot'])
     output_csv.to_csv(output_fname, float_format='%.4f')
     print(f"Save result to {output_fname}")
 
