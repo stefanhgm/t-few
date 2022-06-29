@@ -12,10 +12,23 @@ import re
 import pandas as pd
 from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
 
+templates_for_custom_tasks = {
+    'eol': 'nine_months',
+    'loh': 'nine_months',
+    'surgery': 'nine_months',
+    'income': '100000_dollars',
+    'car': 'rate_decision',
+    'wine': 'rate_bad_or_good',
+    'voting': 'democrats_or_republicans',
+    'titanic': 'survive',
+    'heart': 'heart_disease',
+    'diabetes': 'diabetes'
+}
+
 
 def is_custom_task(cfg):
     task = cfg.dataset.split('_')[0].lower()
-    if task in ['eol', 'loh', 'surgery', 'income', 'car']:
+    if task in templates_for_custom_tasks.keys():
         return True
 
 
@@ -44,44 +57,38 @@ def get_dataset_reader(config):
         "tweet_eval_hate": RaftReader,
         "twitter_complaints": RaftReader,
         "semiconductor_org_types": RaftReader,
-        "eol_important_v_c_10": NoteBinaryReader,
-        "eol_important_v_c_20": NoteBinaryReader,
-        "eol_important_v_c_999": NoteBinaryReader,
-        "loh_important_v_c_10": NoteBinaryReader,
-        "loh_important_v_c_20": NoteBinaryReader,
-        "loh_important_v_c_999": NoteBinaryReader,
-        "surgery_important_v_c_10": NoteBinaryReader,
-        "surgery_important_v_c_20": NoteBinaryReader,
-        "surgery_important_v_c_999": NoteBinaryReader,
-        "eol_important_v_c_10_balanced": NoteBinaryReader,
-        "eol_important_v_c_20_balanced": NoteBinaryReader,
-        "eol_important_v_c_999_balanced": NoteBinaryReader,
-        "loh_important_v_c_10_balanced": NoteBinaryReader,
-        "loh_important_v_c_20_balanced": NoteBinaryReader,
-        "loh_important_v_c_999_balanced": NoteBinaryReader,
-        "surgery_important_v_c_10_balanced": NoteBinaryReader,
-        "surgery_important_v_c_20_balanced": NoteBinaryReader,
-        "surgery_important_v_c_999_balanced": NoteBinaryReader,
-        "eol_important_v_c_p_10": NoteBinaryReader,
-        "eol_important_v_c_p_20": NoteBinaryReader,
-        "eol_important_v_c_p_999": NoteBinaryReader,
-        "loh_important_v_c_p_10": NoteBinaryReader,
-        "loh_important_v_c_p_20": NoteBinaryReader,
-        "loh_important_v_c_p_999": NoteBinaryReader,
-        "surgery_important_v_c_p_10": NoteBinaryReader,
-        "surgery_important_v_c_p_20": NoteBinaryReader,
-        "surgery_important_v_c_p_999": NoteBinaryReader,
-        "eol_important_v_c_p_10_balanced": NoteBinaryReader,
-        "eol_important_v_c_p_20_balanced": NoteBinaryReader,
-        "eol_important_v_c_p_999_balanced": NoteBinaryReader,
-        "loh_important_v_c_p_10_balanced": NoteBinaryReader,
-        "loh_important_v_c_p_20_balanced": NoteBinaryReader,
-        "loh_important_v_c_p_999_balanced": NoteBinaryReader,
-        "surgery_important_v_c_p_10_balanced": NoteBinaryReader,
-        "surgery_important_v_c_p_20_balanced": NoteBinaryReader,
-        "surgery_important_v_c_p_999_balanced": NoteBinaryReader,
-        "income": NoteBinaryReader,
-        "car": NoteBinaryReader
+        "eol_important_v_c_p_10": CustomCategoricalReader,
+        "eol_important_v_c_p_999": CustomCategoricalReader,
+        "eol_important_v_c_999": CustomCategoricalReader,
+        "eol_important_v_999": CustomCategoricalReader,
+        "eol_list_important_v_c_p_999": CustomCategoricalReader,
+        "eol_permuted_important_v_c_p_999": CustomCategoricalReader,
+        "loh_important_v_c_p_10": CustomCategoricalReader,
+        "loh_important_v_c_p_999": CustomCategoricalReader,
+        "loh_important_v_c_999": CustomCategoricalReader,
+        "loh_important_v_999": CustomCategoricalReader,
+        "loh_list_important_v_c_p_999": CustomCategoricalReader,
+        "loh_permuted_important_v_c_p_999": CustomCategoricalReader,
+        "surgery_important_v_c_p_10": CustomCategoricalReader,
+        "surgery_important_v_c_p_999": CustomCategoricalReader,
+        "surgery_important_v_c_999": CustomCategoricalReader,
+        "surgery_important_v_999": CustomCategoricalReader,
+        "surgery_list_important_v_c_p_999": CustomCategoricalReader,
+        "surgery_permuted_important_v_c_p_999": CustomCategoricalReader,
+        "income": CustomCategoricalReader,
+        "income_list": CustomCategoricalReader,
+        "car": CustomCategoricalReader,
+        "car_list": CustomCategoricalReader,
+        "wine": CustomCategoricalReader,
+        "wine_list": CustomCategoricalReader,
+        "voting": CustomCategoricalReader,
+        "voting_list": CustomCategoricalReader,
+        "titanic": CustomCategoricalReader,
+        "titanic_list": CustomCategoricalReader,
+        "heart": CustomCategoricalReader,
+        "heart_list": CustomCategoricalReader,
+        "diabetes": CustomCategoricalReader,
+        "diabetes_list": CustomCategoricalReader,
     }[config.dataset]
     return dataset_class(config)
 
@@ -232,17 +239,11 @@ class BaseDatasetReader(object):
         return {"accuracy": accuracy}
 
 
-class NoteBinaryReader(BaseDatasetReader):
+class CustomCategoricalReader(BaseDatasetReader):
     def __init__(self, config):
         task = config.dataset.split('_')[0].lower()
         # Select correct subtask (especially for right template)
-        subtask = None
-        if task in ['eol', 'loh', 'surgery']:
-            subtask = "nine_months"
-        elif task == 'income':
-            subtask = "100000_dollars"
-        elif task == 'car':
-            subtask = "rate_decision"
+        subtask = templates_for_custom_tasks[task]
         assert subtask is not None
         super().__init__(config, dataset_stash=(config.dataset, subtask))
 
@@ -283,7 +284,7 @@ class NoteBinaryReader(BaseDatasetReader):
     def _sample_few_shot_data(self, orig_data):
         saved_random_state = np.random.get_state()
         np.random.seed(self.config.few_shot_random_seed)
-        # Create a balanced dataset for categorical data!
+        # Create a balanced dataset for categorical data
         labels = {label: len([ex['idx'] for ex in orig_data if ex['label'] == label])
                   for label in list(set(ex['label'] for ex in orig_data))}
         num_labels = len(labels.keys())
