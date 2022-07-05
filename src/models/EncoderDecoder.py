@@ -9,6 +9,7 @@ from src.utils.get_scheduler import get_scheduler
 from statistics import mean
 from deepspeed.utils import zero_to_fp32
 from .fishmask import fishmask_plugin_on_init, fishmask_plugin_on_optimizer_step, fishmask_plugin_on_end
+from ..data.dataset_readers import is_ibc_task
 
 
 class EncoderDecoder(LightningModule):
@@ -267,6 +268,8 @@ class EncoderDecoder(LightningModule):
 
             # compute and log results
             metrics = self.dataset_reader.compute_metric(accumulated)
+            # Append number of best steps to metrics
+            metrics = {**metrics, 'num_steps': self.best_eval_global_step}
             for key, value in accumulated.items():
                 if key.startswith("log."):
                     metrics[key.replace("log.", "")] = mean(value)
@@ -285,11 +288,15 @@ class EncoderDecoder(LightningModule):
         metrics = self.validation_test_shared_preparation(outputs, self.config.dev_score_file)
 
         # Store best model on the validation set.
-        relevant_metrics = ['AUC', 'accuracy']
+        relevant_metrics = ['accuracy']
+        # For IBC task primarily optimize on AUC
+        if is_ibc_task(self.config):
+            relevant_metrics = ['AUC'] + relevant_metrics
         eval_model_metric = [metrics.get(m, -1) for m in relevant_metrics]
         if eval_model_metric > self.best_eval_model_metric:
             self.best_eval_model_metric = eval_model_metric
             self.best_eval_global_step = self.global_step
+            print(f"Stored new best metric {relevant_metrics} with values {eval_model_metric}]")
 
         self.save_model()
         return metrics
@@ -322,6 +329,7 @@ class EncoderDecoder(LightningModule):
     def on_test_start(self):
         # Evaluate model on best metric if training set exists
         model_fname = os.path.join(self.config.exp_dir, f"global_step{self.best_eval_global_step}.pt")
+        print(f"Tested on best model step {self.best_eval_global_step} (global_step{self.best_eval_global_step}.pt)")
         self.config.load_weight = model_fname
         self.load_model()
 
