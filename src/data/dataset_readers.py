@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import yaml
-from datasets import load_dataset, load_from_disk, concatenate_datasets
+from datasets import load_dataset, load_from_disk, concatenate_datasets, DatasetDict, Dataset
 from promptsource.templates import DatasetTemplates
 import pkg_resources
 from promptsource import templates
@@ -29,6 +29,12 @@ templates_for_custom_tasks = {
 def is_custom_task(cfg):
     task = cfg.dataset.split('_')[0].lower()
     if task in templates_for_custom_tasks.keys():
+        return True
+
+
+def is_ibc_task(cfg):
+    task = cfg.dataset.split('_')[0].lower()
+    if task in templates_for_custom_tasks.keys() and task in ['eol', 'loh', 'surgery']:
         return True
 
 
@@ -264,16 +270,28 @@ class CustomCategoricalReader(BaseDatasetReader):
         # To verify performance of best validation run
         # if split == 'test':
         #     split = 'validation'
-        orig_data = super().read_orig_dataset(split)
+        if is_ibc_task(self.config):
+            # Read original split and if valid too large decrease its size.
+            orig_data = super().read_orig_dataset(split)
 
-        # Set custom cap on validation set size to increase speed
-        max_validation_examples = 10_000
-        if split == 'validation' and orig_data.num_rows > max_validation_examples:
-            old_size = orig_data.num_rows
-            orig_data = orig_data.shuffle(seed=self.config.seed)
-            orig_data = orig_data.select(range(0, max_validation_examples))
-            print(f"Found validation set of size {old_size}, shuffled and decreased it to {orig_data.num_rows}")
-            assert orig_data.num_rows == max_validation_examples
+            # Mainly for IBC: Set custom cap on validation set size to increase speed
+            max_validation_examples = 10_000
+            if split == 'validation' and orig_data.num_rows > max_validation_examples:
+                old_size = orig_data.num_rows
+                orig_data = orig_data.shuffle(seed=self.config.seed)
+                orig_data = orig_data.select(range(0, max_validation_examples))
+                print(f"Found validation set of size {old_size}, shuffled and decreased it to {orig_data.num_rows}")
+                assert orig_data.num_rows == max_validation_examples
+        else:
+            # External datasets are not yet shuffled, so do it now
+            orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))
+            data = orig_data.train_test_split(test_size=0.20, seed=self.config.seed)
+            data2 = data['test'].train_test_split(test_size=0.50, seed=self.config.seed)
+            # No validation/test split used for external datasets
+            dataset_dict = DatasetDict({'train': data['train'],
+                                        'validation': concatenate_datasets([data2['train'], data2['test']]),
+                                        'test': Dataset.from_dict({'note': [], 'label': []})})
+            orig_data = dataset_dict[split]
 
         # In case dataset has no idx per example, add that here bc manually created ones might not have an idx.
         if 'idx' not in orig_data.column_names:
@@ -323,11 +341,11 @@ class CustomCategoricalReader(BaseDatasetReader):
         binary = all([True if l in [0, 1] else False for l in accumulated['label']])
         if binary:
             pos_probs = [p[1] for p in accumulated['probabilities']]
-            roc_auc = roc_auc_score(accumulated["label"], pos_probs)
-            pr_auc = pr_auc_score(accumulated["label"], pos_probs)
+            roc_auc = roc_auc_score(accumulated['label'], pos_probs)
+            pr_auc = pr_auc_score(accumulated['label'], pos_probs)
             metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
         # Also record number of instances evaluated
-        metrics = {**metrics, 'num': len(accumulated)}
+        metrics = {**metrics, 'num': len(accumulated['prediction'])}
         return metrics
 
 

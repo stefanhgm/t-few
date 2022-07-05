@@ -26,7 +26,7 @@ class Config(object):
         self.eval_template_idx = -1
         self.batch_size = 8
         self.eval_batch_size = 16
-        self.num_workers = 8
+        self.num_workers = 32  # Increased from 8 since enough CPUs available
         self.change_hswag_templates = False
         self.raft_cross_validation = True
         self.raft_validation_start = 0
