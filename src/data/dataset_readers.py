@@ -83,18 +83,25 @@ def get_dataset_reader(config):
         "surgery_permuted_important_v_c_p_999": CustomCategoricalReader,
         "income": CustomCategoricalReader,
         "income_list": CustomCategoricalReader,
+        "income_list_permuted": CustomCategoricalReader,
         "car": CustomCategoricalReader,
         "car_list": CustomCategoricalReader,
+        "car_list_permuted": CustomCategoricalReader,
         "wine": CustomCategoricalReader,
         "wine_list": CustomCategoricalReader,
+        "wine_list_permuted": CustomCategoricalReader,
         "voting": CustomCategoricalReader,
         "voting_list": CustomCategoricalReader,
+        "voting_list_permuted": CustomCategoricalReader,
         "titanic": CustomCategoricalReader,
         "titanic_list": CustomCategoricalReader,
+        "titanic_list_permuted": CustomCategoricalReader,
         "heart": CustomCategoricalReader,
         "heart_list": CustomCategoricalReader,
+        "heart_list_permuted": CustomCategoricalReader,
         "diabetes": CustomCategoricalReader,
         "diabetes_list": CustomCategoricalReader,
+        "diabetes_list_permuted": CustomCategoricalReader,
     }[config.dataset]
     return dataset_class(config)
 
@@ -343,7 +350,11 @@ class CustomCategoricalReader(BaseDatasetReader):
             pos_probs = [p[1] for p in accumulated['probabilities']]
             roc_auc = roc_auc_score(accumulated['label'], pos_probs)
             pr_auc = pr_auc_score(accumulated['label'], pos_probs)
-            metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
+        else:
+            probs = [p for p in accumulated['probabilities']]
+            roc_auc = roc_auc_score(accumulated['label'], probs, multi_class='ovr', average='macro')
+            pr_auc = -1.
+        metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
         # Also record number of instances evaluated
         metrics = {**metrics, 'num': len(accumulated['prediction'])}
         return metrics

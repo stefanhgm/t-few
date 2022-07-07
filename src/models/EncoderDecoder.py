@@ -287,11 +287,13 @@ class EncoderDecoder(LightningModule):
     def validation_epoch_end(self, outputs):
         metrics = self.validation_test_shared_preparation(outputs, self.config.dev_score_file)
 
+        # Consider best validation performance based on AUC
+        relevant_metrics = ['AUC']
         # Store best model on the validation set.
-        relevant_metrics = ['accuracy']
+        # relevant_metrics = ['accuracy']
         # For IBC task primarily optimize on AUC
-        if is_ibc_task(self.config):
-            relevant_metrics = ['AUC'] + relevant_metrics
+        # if is_ibc_task(self.config):
+        #     relevant_metrics = ['AUC'] + relevant_metrics
         eval_model_metric = [metrics.get(m, -1) for m in relevant_metrics]
         if eval_model_metric > self.best_eval_model_metric:
             self.best_eval_model_metric = eval_model_metric
