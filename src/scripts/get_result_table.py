@@ -1,8 +1,7 @@
 from glob import glob
 import json
 from collections import defaultdict
-from scipy.stats import iqr
-from numpy import median
+import numpy as np
 import os
 import argparse
 
@@ -33,7 +32,7 @@ def make_result_table(args):
 
         def result_str(acc_list):
             if len(acc_list) > 1:
-                return f"{median(acc_list) * 100:.2f} ({iqr(acc_list) * 100:.2f})"
+                return f"{np.mean(acc_list) * 100:.2f} ({np.std(acc_list) * 100:.2f})"
             else:
                 return f"{acc_list[0] * 100:.2f}"
 
