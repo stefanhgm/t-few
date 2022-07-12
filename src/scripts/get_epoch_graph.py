@@ -5,11 +5,8 @@ import json
 import matplotlib.pyplot as plt
 
 import numpy as np
-import pandas as pd
 import os
 import argparse
-
-from scipy.stats import iqr
 
 
 def make_epoch_graph(args):
@@ -40,15 +37,21 @@ def make_epoch_graph(args):
 
         # Determine means and sd for each dataset
         fig, ax = plt.subplots(figsize=(8, 6))
+        epoch_steps = 5
+        epoch_result = 29
+        print(f"Use the {epoch_result}th epoch for the results (indexed by 0 so should be +1).")
         for k, v in results.items():
             means = np.mean(np.array(v), axis=0)
             stds = np.std(np.array(v), axis=0)
-            ax.plot(range(0, len(means)), means, label=k)
-            ax.fill_between(range(0, len(means)), (means - stds), (means + stds), alpha=.1)
-            print(f"{k}: {means[-1] * 100:.2f} ({stds[-1] * 100:.2f})")
-        plt.legend(loc='best')
+            epochs = [0] + list(range(epoch_steps - 1, (len(means) * epoch_steps) - 1, epoch_steps))
+            ax.plot(epochs, means, label=k)
+            ax.fill_between(epochs, (means - stds), (means + stds), alpha=.1)
+            print(f"{k}: {means[epochs.index(epoch_result)] * 100:.2f} ({stds[epochs.index(epoch_result)] * 100:.2f})")
+        plt.legend(loc='lower right')
         plt.xlabel('steps of 5 epochs')
         plt.ylabel('AUC')
+        plt.ylim(ymin=0.35, ymax=1.)
+        plt.tight_layout()
         plt.show()
         print()
 
