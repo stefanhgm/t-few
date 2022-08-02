@@ -14,18 +14,25 @@ eval_epoch_interval=0
 # Excluded 800000 for now since one epoch takes ~20h
 # IBC  4 8 16 32 64 128 256 512 1024 2048 4096 16348 50000 100000 800000
 # External 32 64 128 256 512 1024 2048 4096 16348 50000
-for model in 't011b' 't03b'
+for model in 't011b' # 't03b'
 do
-  for num_shot in 4 8 16 32 64 128 256 512 1024 2048 # 512  # 64 128 1024 50000  # 4 8 16 32 64 128 256 512 1024 2048 4096 16348 50000 100000
+  for num_shot in 4 8 16 32 64 128 256 512 # 1024 2048 # 512  # 64 128 1024 50000  # 4 8 16 32 64 128 256 512 1024 2048 4096 16348 50000 100000
   do
-
-    # Simple setting to create epoch graphs for external datasets
+    # Simple setting to create epoch graphs for external datasets - 250 epochs
     if [ "$num_shot" -le 4 ] ; then
-      num_steps=$(( 60 * $num_shot))
+      num_steps=$(( 10 * $num_shot))
     else
-      num_steps=$(( 30 * $num_shot))
+      num_steps=$(( 5 * $num_shot))
     fi
-    eval_epoch_interval=5
+    eval_epoch_interval=10
+
+    # Simple setting to create epoch graphs for external datasets - 250 epochs
+    # if [ "$num_shot" -le 4 ] ; then
+    #   num_steps=$(( 60 * $num_shot))
+    # else
+    #   num_steps=$(( 30 * $num_shot))
+    # fi
+    # eval_epoch_interval=5
 
     # Determine epoch number xxx * for each shot size
     # if [ "$num_shot" -le 64 ] ; then
@@ -52,10 +59,11 @@ do
     # TODO: Set per experiment
     # income car
     # eol_important_v_c_10 eol_important_v_c_999 eol_important_v_c_10_balanced eol_important_v_c_999_balanced loh_important_v_c_10 loh_important_v_c_999 loh_important_v_c_10_balanced loh_important_v_c_999_balanced surgery_important_v_c_10 surgery_important_v_c_999 surgery_important_v_c_10_balanced surgery_important_v_c_999_balanced
-    # 2048: titanic titanic_list heart heart_list diabetes diabetes_list voting voting_list
-    # 4096: wine wine_list car car_list
-    # 50000: income income_list
-    for dataset in income income_list income_list_permuted # diabetes diabetes_list # income income_list #  eol_important_v_c_p_999 eol_list_important_v_c_p_999 loh_important_v_c_p_10 surgery_important_v_c_p_10
+    # income income_list income_list_shuffled income_list_values
+    # car car_list car_list_shuffled car_list_values
+    # heart heart_list heart_list_shuffled heart_list_values
+    # diabetes diabetes_list diabetes_list_shuffled diabetes_list_values
+    for dataset in heart heart_list heart_list_shuffled heart_list_values # diabetes diabetes_list # income income_list #  eol_important_v_c_p_999 eol_list_important_v_c_p_999 loh_important_v_c_p_10 surgery_important_v_c_p_10
     do
       for seed in 42 1024 0 1 32 45 655 186 126 836
       do
