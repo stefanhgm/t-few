@@ -10,13 +10,13 @@ import csv
 from typing import Dict, List, Optional, Tuple
 import re
 import pandas as pd
-from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
+from sklearn.metrics import roc_auc_score, precision_recall_curve, auc, f1_score
 
 templates_for_custom_tasks = {
     'eol': 'nine_months',
     'loh': 'nine_months',
     'surgery': 'nine_months',
-    'income': '100000_dollars',
+    'income': '50000_dollars',
     'car': 'rate_decision',
     'wine': 'rate_bad_or_good',
     'voting': 'democrats_or_republicans',
@@ -84,24 +84,23 @@ def get_dataset_reader(config):
         "income": CustomCategoricalReader,
         "income_list": CustomCategoricalReader,
         "income_list_permuted": CustomCategoricalReader,
+        "income_list_shuffled": CustomCategoricalReader,
+        "income_list_values": CustomCategoricalReader,
         "car": CustomCategoricalReader,
         "car_list": CustomCategoricalReader,
         "car_list_permuted": CustomCategoricalReader,
-        "wine": CustomCategoricalReader,
-        "wine_list": CustomCategoricalReader,
-        "wine_list_permuted": CustomCategoricalReader,
-        "voting": CustomCategoricalReader,
-        "voting_list": CustomCategoricalReader,
-        "voting_list_permuted": CustomCategoricalReader,
-        "titanic": CustomCategoricalReader,
-        "titanic_list": CustomCategoricalReader,
-        "titanic_list_permuted": CustomCategoricalReader,
+        "car_list_shuffled": CustomCategoricalReader,
+        "car_list_values": CustomCategoricalReader,
         "heart": CustomCategoricalReader,
         "heart_list": CustomCategoricalReader,
         "heart_list_permuted": CustomCategoricalReader,
+        "heart_list_shuffled": CustomCategoricalReader,
+        "heart_list_values": CustomCategoricalReader,
         "diabetes": CustomCategoricalReader,
         "diabetes_list": CustomCategoricalReader,
         "diabetes_list_permuted": CustomCategoricalReader,
+        "diabetes_list_shuffled": CustomCategoricalReader,
+        "diabetes_list_values": CustomCategoricalReader,
     }[config.dataset]
     return dataset_class(config)
 
@@ -353,8 +352,12 @@ class CustomCategoricalReader(BaseDatasetReader):
         else:
             probs = [p for p in accumulated['probabilities']]
             roc_auc = roc_auc_score(accumulated['label'], probs, multi_class='ovr', average='macro')
-            pr_auc = -1.
-        metrics = {'AUC': roc_auc, 'PR': pr_auc, **metrics}
+            # Abuse pr for AUC ovo here
+            pr_auc = roc_auc_score(accumulated['label'], probs, multi_class='ovo', average='macro')
+
+        micro_f1 = f1_score(accumulated['label'], accumulated['prediction'], average='micro')
+        macro_f1 = f1_score(accumulated['label'], accumulated['prediction'], average='macro')
+        metrics = {'AUC': roc_auc, 'PR': pr_auc, 'micro_f1': micro_f1, 'macro_f1': macro_f1,  **metrics}
         # Also record number of instances evaluated
         metrics = {**metrics, 'num': len(accumulated['prediction'])}
         return metrics
