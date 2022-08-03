@@ -86,6 +86,7 @@ def get_dataset_reader(config):
         "income_list_permuted": CustomCategoricalReader,
         "income_list_shuffled": CustomCategoricalReader,
         "income_list_values": CustomCategoricalReader,
+        "income_list_importance": CustomCategoricalReader,
         "car": CustomCategoricalReader,
         "car_list": CustomCategoricalReader,
         "car_list_permuted": CustomCategoricalReader,
@@ -276,6 +277,8 @@ class CustomCategoricalReader(BaseDatasetReader):
         # To verify performance of best validation run
         # if split == 'test':
         #     split = 'validation'
+        # orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))
+
         if is_ibc_task(self.config):
             # Read original split and if valid too large decrease its size.
             orig_data = super().read_orig_dataset(split)
@@ -340,9 +343,9 @@ class CustomCategoricalReader(BaseDatasetReader):
         # Now randomize and (selection of num_shots redundant now bc already done).
         return super()._sample_few_shot_data(orig_data)
 
-
     def compute_metric(self, accumulated):
         metrics = super().compute_metric(accumulated)
+        # print(accumulated['probabilities'])
 
         binary = all([True if l in [0, 1] else False for l in accumulated['label']])
         if binary:
