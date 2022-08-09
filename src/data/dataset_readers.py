@@ -81,6 +81,7 @@ def get_dataset_reader(config):
         "income_list_shuffled": CustomCategoricalReader,
         "income_list_values": CustomCategoricalReader,
         "income_list_importance": CustomCategoricalReader,
+        "income_list_inflation": CustomCategoricalReader,
         "car": CustomCategoricalReader,
         "car_list": CustomCategoricalReader,
         "car_list_permuted": CustomCategoricalReader,
