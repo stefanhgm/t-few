@@ -298,7 +298,7 @@ class EncoderDecoder(LightningModule):
         if eval_model_metric > self.best_eval_model_metric:
             self.best_eval_model_metric = eval_model_metric
             self.best_eval_global_step = self.global_step
-            print(f"Stored new best metric {relevant_metrics} with values {eval_model_metric}]")
+            print(f"Stored new best metric {relevant_metrics} with values {eval_model_metric} at step {self.global_step}.")
 
         self.save_model()
         return metrics

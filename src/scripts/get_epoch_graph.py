@@ -49,7 +49,7 @@ def make_epoch_graph(args):
             epochs = [0] + list(range(epoch_steps - 1, (len(means) * epoch_steps) - 1, epoch_steps))
             ax.plot(epochs, means, label=k)
             ax.fill_between(epochs, (means - stds), (means + stds), alpha=.1)
-            print(f"{k}: {means[epochs.index(epoch_result)] * 100:.2f} ({stds[epochs.index(epoch_result)] * 100:.2f})")
+            print(f"{k}: {means[epochs.index(epoch_result)]:.2f} ({stds[epochs.index(epoch_result)]:.2f}) [{len(v)}]")
         plt.legend(loc='lower right')
         plt.xlabel(f"steps of {epoch_steps} epochs")
         if datasets[0] == 'car':
