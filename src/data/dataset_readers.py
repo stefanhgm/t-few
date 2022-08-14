@@ -1,5 +1,8 @@
+import datetime
 import os
 import json
+import pickle
+
 import numpy as np
 import yaml
 from datasets import load_dataset, load_from_disk, concatenate_datasets, DatasetDict, Dataset
@@ -81,7 +84,11 @@ def get_dataset_reader(config):
         "income_list_shuffled": CustomCategoricalReader,
         "income_list_values": CustomCategoricalReader,
         "income_list_importance": CustomCategoricalReader,
-        "income_list_inflation": CustomCategoricalReader,
+        "income_list_importance_small": CustomCategoricalReader,
+        "income_list_inflation_control": CustomCategoricalReader,
+        "income_list_inflation_features": CustomCategoricalReader,
+        "income_list_inflation_label": CustomCategoricalReader,
+        "income_list_inflation_both": CustomCategoricalReader,
         "car": CustomCategoricalReader,
         "car_list": CustomCategoricalReader,
         "car_list_permuted": CustomCategoricalReader,
@@ -101,7 +108,7 @@ def get_dataset_reader(config):
     return dataset_class(config)
 
 
-DATASETS_OFFLINE = "/data/IBC/stefan_ibc/omop-pkg/datasets"
+DATASETS_OFFLINE = "/localdata/stefanhg/omop-pkg/datasets"
 MAX_EXAMPLES_PER_DATASET = 500_000
 TASK_BLACKLIST = [
     # Tasks which often tokenize to > 1024 tokens currently
@@ -289,13 +296,16 @@ class CustomCategoricalReader(BaseDatasetReader):
         else:
             # External datasets are not yet shuffled, so do it now
             orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))
-            data = orig_data.train_test_split(test_size=0.20, seed=self.config.seed)
-            data2 = data['test'].train_test_split(test_size=0.50, seed=self.config.seed)
-            # No validation/test split used for external datasets
-            dataset_dict = DatasetDict({'train': data['train'],
-                                        'validation': concatenate_datasets([data2['train'], data2['test']]),
-                                        'test': Dataset.from_dict({'note': [], 'label': []})})
-            orig_data = dataset_dict[split]
+            # TODO: Remove! Only for importance
+            split_data = True  # Default True
+            if split_data:
+                data = orig_data.train_test_split(test_size=0.20, seed=self.config.seed)
+                data2 = data['test'].train_test_split(test_size=0.50, seed=self.config.seed)
+                # No validation/test split used for external datasets
+                dataset_dict = DatasetDict({'train': data['train'],
+                                            'validation': concatenate_datasets([data2['train'], data2['test']]),
+                                            'test': Dataset.from_dict({'note': [], 'label': []})})
+                orig_data = dataset_dict[split]
 
         # In case dataset has no idx per example, add that here bc manually created ones might not have an idx.
         if 'idx' not in orig_data.column_names:
@@ -304,6 +314,9 @@ class CustomCategoricalReader(BaseDatasetReader):
         return orig_data
 
     def _sample_few_shot_data(self, orig_data):
+        if self.config.num_shot == 'all':
+            return [x for x in orig_data]
+
         saved_random_state = np.random.get_state()
         np.random.seed(self.config.few_shot_random_seed)
         # Create a balanced dataset for categorical data
@@ -358,6 +371,14 @@ class CustomCategoricalReader(BaseDatasetReader):
         metrics = {'AUC': roc_auc, 'PR': pr_auc, 'micro_f1': micro_f1, 'macro_f1': macro_f1,  **metrics}
         # Also record number of instances evaluated
         metrics = {**metrics, 'num': len(accumulated['prediction'])}
+
+        # TODO: Remove! Only for importance
+        store_probabilities = False  # Default False
+        if store_probabilities:
+            prop_output = 't0-probabilities-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + '.p'
+            with open(prop_output, 'wb') as f:
+                pickle.dump(accumulated['probabilities'], f)
+
         return metrics
 
 
