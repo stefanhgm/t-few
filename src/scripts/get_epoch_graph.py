@@ -24,7 +24,7 @@ def get_epoch_wide_results(exp_name_template, datasets):
         return results
 
     results = defaultdict(list)
-    all_files.sort(key=lambda x: (int(re.findall(r".*_numshot(\d+).*", x)[0]), x), reverse=True)
+    all_files.sort(key=lambda x: (int((re.findall(r".*_numshot(\d+|all).*", x)[0] if re.findall(r".*_numshot(\d+|all).*", x)[0] != 'all' else 99999)), x), reverse=True)
     for fname in all_files:
         if any([d in fname for d in datasets]):
             name = fname.split('_seed')[0]
