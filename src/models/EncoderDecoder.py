@@ -239,6 +239,12 @@ class EncoderDecoder(LightningModule):
         return batch_output
 
     def validation_step(self, batch, batch_idx):
+        # Custom epoch selection
+        # if self.current_epoch not in [0, 2, 4, 9, 29]:
+        #     dummy = ([0] * (len(batch["labels"].tolist()) - 1)) + [1]
+        #     return {"prediction": dummy, "probabilities": [(0.5, 0.5)] * len(batch["labels"].tolist()), "label": batch["labels"].tolist(),
+        #             "idx": batch["idx"].tolist(), "log.score_gt": dummy, "log.score_cand": dummy}
+
         batch_output = self.predict(batch)
         return batch_output
 

@@ -49,14 +49,14 @@ def make_epoch_graph(args):
             epochs = [0] + list(range(epoch_steps - 1, (len(means) * epoch_steps) - 1, epoch_steps))
             ax.plot(epochs, means, label=k)
             ax.fill_between(epochs, (means - stds), (means + stds), alpha=.1)
-            print(f"{k}: {means[epochs.index(epoch_result)]:.2f} ({stds[epochs.index(epoch_result)]:.2f}) [{len(v)}]")
+            print(f"{k}: {means[epochs.index(epoch_result)]:.3f} ({stds[epochs.index(epoch_result)]:.3f}) [{len(v)}]")
         plt.legend(loc='lower right')
         plt.xlabel(f"steps of {epoch_steps} epochs")
         if datasets[0] == 'car':
             plt.ylabel('Macro AUC OVR')
         else:
             plt.ylabel('AUC')
-        plt.ylim(ymin=0.35, ymax=1.)
+        plt.ylim(ymin=0.60, ymax=0.82)  # plt.ylim(ymin=0.55, ymax=0.85)
         plt.tight_layout()
         plt.show()
         print()

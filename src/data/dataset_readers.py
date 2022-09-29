@@ -42,7 +42,7 @@ def is_ibc_task(cfg):
 
 
 def get_dataset_reader(config):
-    dataset_class = {
+    dataset_dict = {
         "T0Mixture": T0MixtureReader,
         "rte": RTEReader,
         "h-swag": HSwagReader,
@@ -70,14 +70,117 @@ def get_dataset_reader(config):
         "eol_list_important_v_c_p_10": CustomCategoricalReader,
         "eol_list_permuted_important_v_c_p_999": CustomCategoricalReader,
         "eol_important_v_c_p_999": CustomCategoricalReader,
+        "eol_list_most_frequent_conditions_all_importance": CustomCategoricalReader,
+        "eol_list_adaptive_v_c_p_999": CustomCategoricalReader,
+        "eol_list_adaptive_v_c_p_10": CustomCategoricalReader,
+        "eol_list_permuted_adaptive_v_c_p_999": CustomCategoricalReader,
+        "eol_adaptive_v_c_p_999": CustomCategoricalReader,
+        "eol_list_fixed_v_c_p_999": CustomCategoricalReader,
+        "eol_list_fixed_v_c_p_10": CustomCategoricalReader,
+        "eol_list_permuted_fixed_v_c_p_999": CustomCategoricalReader,
+        "eol_fixed_v_c_p_999": CustomCategoricalReader,
+        "eol_list_zero_shot_adaptive_256": CustomCategoricalReader,
+        "eol_list_zero_shot_adaptive_4096": CustomCategoricalReader,
+        "eol_list_zero_shot_age_sex_gender_race": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_procedures": CustomCategoricalReader,
+        "eol_list_zero_shot_least_frequent": CustomCategoricalReader,
+        "eol_list_zero_shot_least_frequent_conditions": CustomCategoricalReader,
+        "eol_list_zero_shot_least_frequent_procedures": CustomCategoricalReader,
+        "eol_list_zero_shot_oldest": CustomCategoricalReader,
+        "eol_list_zero_shot_oldest_conditions": CustomCategoricalReader,
+        "eol_list_zero_shot_oldest_procedures": CustomCategoricalReader,
+        "eol_list_zero_shot_recent": CustomCategoricalReader,
+        "eol_list_zero_shot_recent_conditions": CustomCategoricalReader,
+        "eol_list_zero_shot_recent_procedures": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_snomed": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_icd": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_medcin": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_chv": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_shortened": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_lay": CustomCategoricalReader,
+        "eol_list_zero_shot_most_frequent_conditions_jargon": CustomCategoricalReader,
+        "eol_list_most_frequent_conditions": CustomCategoricalReader,
+        "eol_list_short_most_frequent_conditions": CustomCategoricalReader,
+        "eol_most_frequent_conditions": CustomCategoricalReader,
+        "eol_list_permuted_most_frequent_conditions": CustomCategoricalReader,
         "surgery_list_important_v_c_p_999": CustomCategoricalReader,
         "surgery_list_important_v_c_p_10": CustomCategoricalReader,
         "surgery_list_permuted_important_v_c_p_999": CustomCategoricalReader,
         "surgery_important_v_c_p_999": CustomCategoricalReader,
+        "surgery_list_adaptive_v_c_p_999": CustomCategoricalReader,
+        "surgery_list_adaptive_v_c_p_10": CustomCategoricalReader,
+        "surgery_list_permuted_adaptive_v_c_p_999": CustomCategoricalReader,
+        "surgery_adaptive_v_c_p_999": CustomCategoricalReader,
+        "surgery_list_fixed_v_c_p_999": CustomCategoricalReader,
+        "surgery_list_fixed_v_c_p_10": CustomCategoricalReader,
+        "surgery_list_permuted_fixed_v_c_p_999": CustomCategoricalReader,
+        "surgery_fixed_v_c_p_999": CustomCategoricalReader,
+        "surgery_list_zero_shot_adaptive_256": CustomCategoricalReader,
+        "surgery_list_zero_shot_adaptive_4096": CustomCategoricalReader,
+        "surgery_list_zero_shot_age_sex_gender_race": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_procedures": CustomCategoricalReader,
+        "surgery_list_zero_shot_least_frequent": CustomCategoricalReader,
+        "surgery_list_zero_shot_least_frequent_conditions": CustomCategoricalReader,
+        "surgery_list_zero_shot_least_frequent_procedures": CustomCategoricalReader,
+        "surgery_list_zero_shot_oldest": CustomCategoricalReader,
+        "surgery_list_zero_shot_oldest_conditions": CustomCategoricalReader,
+        "surgery_list_zero_shot_oldest_procedures": CustomCategoricalReader,
+        "surgery_list_zero_shot_recent": CustomCategoricalReader,
+        "surgery_list_zero_shot_recent_conditions": CustomCategoricalReader,
+        "surgery_list_zero_shot_recent_procedures": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_snomed": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_icd": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_medcin": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_chv": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_shortened": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_lay": CustomCategoricalReader,
+        "surgery_list_zero_shot_most_frequent_conditions_jargon": CustomCategoricalReader,
+        "surgery_list_most_frequent_conditions": CustomCategoricalReader,
+        "surgery_list_short_most_frequent_conditions": CustomCategoricalReader,
+        "surgery_most_frequent_conditions": CustomCategoricalReader,
+        "surgery_list_permuted_most_frequent_conditions": CustomCategoricalReader,
         "loh_list_important_v_c_p_999": CustomCategoricalReader,
         "loh_list_important_v_c_p_10": CustomCategoricalReader,
         "loh_list_permuted_important_v_c_p_999": CustomCategoricalReader,
         "loh_important_v_c_p_999": CustomCategoricalReader,
+        "loh_list_adaptive_v_c_p_999": CustomCategoricalReader,
+        "loh_list_adaptive_v_c_p_10": CustomCategoricalReader,
+        "loh_list_permuted_adaptive_v_c_p_999": CustomCategoricalReader,
+        "loh_adaptive_v_c_p_999": CustomCategoricalReader,
+        "loh_list_fixed_v_c_p_999": CustomCategoricalReader,
+        "loh_list_fixed_v_c_p_10": CustomCategoricalReader,
+        "loh_list_permuted_fixed_v_c_p_999": CustomCategoricalReader,
+        "loh_fixed_v_c_p_999": CustomCategoricalReader,
+        "loh_list_zero_shot_adaptive_256": CustomCategoricalReader,
+        "loh_list_zero_shot_adaptive_4096": CustomCategoricalReader,
+        "loh_list_zero_shot_age_sex_gender_race": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_procedures": CustomCategoricalReader,
+        "loh_list_zero_shot_least_frequent": CustomCategoricalReader,
+        "loh_list_zero_shot_least_frequent_conditions": CustomCategoricalReader,
+        "loh_list_zero_shot_least_frequent_procedures": CustomCategoricalReader,
+        "loh_list_zero_shot_oldest": CustomCategoricalReader,
+        "loh_list_zero_shot_oldest_conditions": CustomCategoricalReader,
+        "loh_list_zero_shot_oldest_procedures": CustomCategoricalReader,
+        "loh_list_zero_shot_recent": CustomCategoricalReader,
+        "loh_list_zero_shot_recent_conditions": CustomCategoricalReader,
+        "loh_list_zero_shot_recent_procedures": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_snomed": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_icd": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_medcin": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_chv": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_shortened": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_lay": CustomCategoricalReader,
+        "loh_list_zero_shot_most_frequent_conditions_jargon": CustomCategoricalReader,
+        "loh_list_most_frequent_conditions": CustomCategoricalReader,
+        "loh_list_short_most_frequent_conditions": CustomCategoricalReader,
+        "loh_most_frequent_conditions": CustomCategoricalReader,
+        "loh_list_permuted_most_frequent_conditions": CustomCategoricalReader,
         "income": CustomCategoricalReader,
         "income_list": CustomCategoricalReader,
         "income_list_permuted": CustomCategoricalReader,
@@ -108,7 +211,14 @@ def get_dataset_reader(config):
         "diabetes_list_shuffled_values": CustomCategoricalReader,
         "diabetes_list_shuffled": CustomCategoricalReader,
         "diabetes_list_values": CustomCategoricalReader,
-    }[config.dataset]
+    }
+
+    dataset_class = None
+    if config.dataset in dataset_dict:
+        dataset_class = dataset_dict[config.dataset]
+    elif str(config.dataset).split('_' + str(config.num_shot))[0] in dataset_dict:
+        dataset_class = dataset_dict[str(config.dataset).split('_' + str(config.num_shot))[0]]
+
     return dataset_class(config)
 
 
@@ -286,21 +396,34 @@ class CustomCategoricalReader(BaseDatasetReader):
         # orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))
 
         if is_ibc_task(self.config):
-            # Read original split and if valid too large decrease its size.
+            if split == 'test':
+                return Dataset.from_dict({'note': [], 'label': []})
+            if split == 'validation':
+                split = 'test'
             orig_data = super().read_orig_dataset(split)
 
             # Mainly for IBC: Set custom cap on validation set size to increase speed
-            max_validation_examples = 10_000
-            if split == 'validation' and orig_data.num_rows > max_validation_examples:
-                old_size = orig_data.num_rows
-                orig_data = orig_data.shuffle(seed=self.config.seed)
-                orig_data = orig_data.select(range(0, max_validation_examples))
-                print(f"Found validation set of size {old_size}, shuffled and decreased it to {orig_data.num_rows}")
-                assert orig_data.num_rows == max_validation_examples
+            # max_validation_examples = 10_000
+            # if split == 'validation' and orig_data.num_rows > max_validation_examples:
+            #     old_size = orig_data.num_rows
+            #     orig_data = orig_data.shuffle(seed=self.config.seed)
+            #     orig_data = orig_data.select(range(0, max_validation_examples))
+            #     print(f"Found validation set of size {old_size}, shuffled and decreased it to {orig_data.num_rows}")
+            #     assert orig_data.num_rows == max_validation_examples
+
+            # Debug output data
+            if split == 'test':
+                for example in orig_data:
+                    print(json.dumps(example))
+                    break
+            if split == 'validation' and False:
+                with open('/localdata/stefanhg/ibc_validation_syngatortron/out.jsonl', "w+") as fout:
+                    for example in orig_data:
+                        fout.write(json.dumps(example) + "\n")
         else:
             # External datasets are not yet shuffled, so do it now
             orig_data = load_from_disk(os.path.join(DATASETS_OFFLINE, self.dataset_stash[0]))
-            # TODO: Remove! Only for importance
+            # Debug output for importance
             split_data = True  # Default True
             if split_data:
                 data = orig_data.train_test_split(test_size=0.20, seed=self.config.seed)
@@ -320,6 +443,12 @@ class CustomCategoricalReader(BaseDatasetReader):
     def _sample_few_shot_data(self, orig_data):
         if self.config.num_shot == 'all':
             return [x for x in orig_data]
+
+        if self.config.num_shot == 0 or self.config.num_shot == '0':
+            return []
+
+        if not self.config.balanced_ibc:
+            return super()._sample_few_shot_data(orig_data)
 
         saved_random_state = np.random.get_state()
         np.random.seed(self.config.few_shot_random_seed)
@@ -376,7 +505,7 @@ class CustomCategoricalReader(BaseDatasetReader):
         # Also record number of instances evaluated
         metrics = {**metrics, 'num': len(accumulated['prediction'])}
 
-        # TODO: Remove! Only for importance
+        # Debug: Only for importance
         store_probabilities = False  # Default False
         if store_probabilities:
             prop_output = 't0-probabilities-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + '.p'

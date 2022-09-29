@@ -110,6 +110,9 @@ class Config(object):
         self.prefix_tuning_init_text = None
         self.prefix_tuning_parameterization = "mlp-512"
 
+        # Custom parameters
+        self.balanced_ibc = True
+
         if filenames:
             for filename in filenames.split("+"):
                 if not os.path.exists(filename):
