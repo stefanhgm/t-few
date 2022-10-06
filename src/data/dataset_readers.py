@@ -222,7 +222,7 @@ def get_dataset_reader(config):
     return dataset_class(config)
 
 
-DATASETS_OFFLINE = "/localdata/stefanhg/omop-pkg/datasets"
+DATASETS_OFFLINE = "/root/datasets"
 MAX_EXAMPLES_PER_DATASET = 500_000
 TASK_BLACKLIST = [
     # Tasks which often tokenize to > 1024 tokens currently
@@ -417,7 +417,7 @@ class CustomCategoricalReader(BaseDatasetReader):
                     print(json.dumps(example))
                     break
             if split == 'validation' and False:
-                with open('/localdata/stefanhg/ibc_validation_syngatortron/out.jsonl', "w+") as fout:
+                with open('/root/out.jsonl', "w+") as fout:
                     for example in orig_data:
                         fout.write(json.dumps(example) + "\n")
         else:
