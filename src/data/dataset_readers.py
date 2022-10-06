@@ -380,7 +380,7 @@ class CustomCategoricalReader(BaseDatasetReader):
     def get_template(self, template_idx):
         # Add custom template
         task = self.config.dataset.split('_')[0].lower()
-        yaml_dict = yaml.load(open('/data/IBC/stefan_ibc/omop-pkg/templates/templates_' + task + '.yaml', "r"),
+        yaml_dict = yaml.load(open('/root/datasets/templates/templates_' + task + '.yaml', "r"),
                               Loader=yaml.FullLoader)
         prompts = yaml_dict['templates']
 
