@@ -16,7 +16,7 @@ def make_epoch_graph(args):
         # Determine means and sd for each dataset
         fig, ax = plt.subplots(figsize=(8, 6))
         epoch_steps = 10
-        epoch_result = 29
+        epoch_result = 0
         print(f"Use the {epoch_result}th epoch for the results (indexed by 0 so should be +1).")
         setting_dict = {
             'list_': 'list',
@@ -97,7 +97,7 @@ def make_epoch_graph(args):
                 mean = means[epochs.index(epoch_result)]
                 std = stds[epochs.index(epoch_result)]
                 setting, shots = re.findall(rf".+_{d}_(.*)numshot(\d+)", k)[0]
-                if setting in ['list_shuffled_']:
+                if setting in ['list_shuffled_', 'gpt_', '2_', 'ttt_', 't0_']:
                     continue
                 setting = setting_dict[setting]
                 performance_per_setting[setting] = performance_per_setting[setting] + [(int(shots), mean, std)]

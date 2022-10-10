@@ -29,7 +29,7 @@ def get_epoch_wide_results(exp_name_template, datasets):
         if any([d in fname for d in datasets]):
             name = fname.split('_seed')[0]
             accs = read_acc_per_epoch(fname)
-            if (len(accs) not in [5, 81, 49]) or (len(results[name]) > 0 and len(results[name][0]) > len(accs)):
+            if (len(accs) not in [1, 5, 81, 49]) or (len(results[name]) > 0 and len(results[name][0]) > len(accs)):
                 continue  # Ignore incomplete results
             results[name] = results[name] + [read_acc_per_epoch(fname)]
     return results
@@ -41,7 +41,7 @@ def make_epoch_graph(args):
         # Determine means and sd for each dataset
         fig, ax = plt.subplots(figsize=(8, 6))
         epoch_steps = 10
-        epoch_result = 29
+        epoch_result = 0
         print(f"Use the {epoch_result}th epoch for the results (indexed by 0 so should be +1).")
         for k, v in results.items():
             means = np.mean(np.array(v), axis=0)

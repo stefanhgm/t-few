@@ -9,3 +9,4 @@ sentencepiece==0.1.96
 promptsource
 scipy
 scikit
+matplotlib
