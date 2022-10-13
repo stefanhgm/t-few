@@ -79,7 +79,7 @@ def get_dataset_reader(config):
     return dataset_class(config)
 
 
-DATASETS_OFFLINE = "/root/datasets"
+DATASETS_OFFLINE = "/home/stefanhg/datasets"
 MAX_EXAMPLES_PER_DATASET = 500_000
 TASK_BLACKLIST = [
     # Tasks which often tokenize to > 1024 tokens currently
@@ -237,7 +237,7 @@ class CustomCategoricalReader(BaseDatasetReader):
     def get_template(self, template_idx):
         # Add custom template
         task = self.config.dataset.split('_')[0].lower()
-        yaml_dict = yaml.load(open('/root/datasets/templates/templates_' + task + '.yaml', "r"),
+        yaml_dict = yaml.load(open('/home/stefanhg/datasets/templates/templates_' + task + '.yaml', "r"),
                               Loader=yaml.FullLoader)
         prompts = yaml_dict['templates']
 
@@ -274,7 +274,7 @@ class CustomCategoricalReader(BaseDatasetReader):
                     print(json.dumps(example))
                     break
             if split == 'validation' and False:
-                with open('/root/out.jsonl', "w+") as fout:
+                with open('/home/stefanhg/out.jsonl', "w+") as fout:
                     for example in orig_data:
                         fout.write(json.dumps(example) + "\n")
         else:

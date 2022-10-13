@@ -36,6 +36,7 @@ def get_epoch_wide_results(exp_name_template, datasets):
 
 
 def make_epoch_graph(args):
+    args.datasets = ['income', 'car', 'heart', 'diabetes']
     def make_epoch_graph_per_template(exp_name_template, datasets):
         results = get_epoch_wide_results(exp_name_template, datasets)
         # Determine means and sd for each dataset
@@ -49,7 +50,7 @@ def make_epoch_graph(args):
             epochs = [0] + list(range(epoch_steps - 1, (len(means) * epoch_steps) - 1, epoch_steps))
             ax.plot(epochs, means, label=k)
             ax.fill_between(epochs, (means - stds), (means + stds), alpha=.1)
-            print(f"{k}: {means[epochs.index(epoch_result)]:.3f} ({stds[epochs.index(epoch_result)]:.3f}) [{len(v)}]")
+            print(f"{k}: {means[epochs.index(epoch_result)]:.2f}_{{{stds[epochs.index(epoch_result)]:.2f}}} [{len(v)}]")
         plt.legend(loc='lower right')
         plt.xlabel(f"steps of {epoch_steps} epochs")
         if datasets[0] == 'car':
