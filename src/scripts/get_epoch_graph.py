@@ -36,7 +36,7 @@ def get_epoch_wide_results(exp_name_template, datasets):
 
 
 def make_epoch_graph(args):
-    args.datasets = ['income', 'car', 'heart', 'diabetes']
+    args.datasets = ['income', 'car', 'heart', 'diabetes', 'creditg', 'bank', 'blood', 'jungle', 'calhousing']
     def make_epoch_graph_per_template(exp_name_template, datasets):
         results = get_epoch_wide_results(exp_name_template, datasets)
         # Determine means and sd for each dataset
