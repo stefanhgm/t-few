@@ -15,7 +15,7 @@ lr=0.003  # Original in config 3e-3, also used as default in ia3
 re='^[0-9]+$'
 
 # TODO: Set per experiment
-cuda_device=0
+cuda_device=3
 
 # Set adaptively
 num_steps=0 #  #  2000, 256 / 1k: 5000 4k (30 epochs)/16k (8 epochs): 16000 all (5 epochs): 60000 eol 320000 loh/surgery | balanced: 4k shot eol, 20000 loh, 135000 surgery
@@ -38,7 +38,7 @@ do
     # for dataset in income_gpt income_list_permuted income_list_shuffled car_gpt car_ttt car_t0 heart_list_permuted heart_list_shuffled heart_gpt heart_t0 heart_ttt diabetes_list_permuted diabetes_list_shuffled diabetes_gpt diabetes_t0 diabetes_ttt
     # for dataset in car_gpt car_t0 car_ttt car heart_gpt heart_t0 heart_ttt heart heart_list heart_list_permuted heart_list_shuffled diabetes_gpt diabetes_t0 diabetes_ttt diabetes diabetes_list diabetes_list_permuted diabetes_list_shuffled
     # for dataset in jungle jungle_list income heart diabetes creditg creditg_list car calhousing calhousing_list blood blood_list bank bank_list
-    for dataset in jungle creditg calhousing blood bank
+    for dataset in jungle_list jungle_list_permuted jungle_list_shuffled jungle_list_values creditg_list creditg_list_permuted creditg_list_shuffled creditg_list_values calhousing_list calhousing_list_permuted calhousing_list_shuffled calhousing_list_values blood_list blood_list_permuted blood_list_shuffled blood_list_values bank_list bank_list_permuted bank_list_shuffled bank_list_values jungle_gpt jungle_t0 jungle_ttt creditg_gpt creditg_t0 creditg_ttt calhousing_gpt calhousing_t0 calhousing_ttt bank_gpt bank_t0 bank_ttt blood_gpt blood_t0 blood_ttt
     do
       # IBC
       # num_steps=$(( 3 * ($num_shot / $grad_accum_factor)))
@@ -94,11 +94,26 @@ do
         if [[ $dataset = *"diabetes"* ]]; then
           num_steps=4700
         fi
+        if [[ $dataset = *"bank"* ]]; then
+          num_steps=272000
+        fi
+        if [[ $dataset = *"blood"* ]]; then
+          num_steps=4520
+        fi
+        if [[ $dataset = *"calhousing"* ]]; then
+          num_steps=124000
+        fi
+        if [[ $dataset = *"creditg"* ]]; then
+          num_steps=6000
+        fi
+        if [[ $dataset = *"jungle"* ]]; then
+          num_steps=270000
+        fi
       fi
 
       for seed in 42 1024 0 1 32 # 45 655 186 126 836
       do
-        CUDA_VISIBLE_DEVICES=${cuda_device} CONFIG_PATH=/root/t-few/configs HF_HOME=/root/.cache/huggingface \
+        CUDA_VISIBLE_DEVICES=${cuda_device} CONFIG_PATH=/localdata/stefanhg/t-few/configs HF_HOME=/localdata/stefanhg/.cache/huggingface \
         python -m src.pl_train -c ${model}.json+ia3.json+global.json -k dataset=${dataset} load_weight="pretrained_checkpoints/${model}_ia3_finish.pt" num_steps=${num_steps} num_shot=${num_shot} \
         exp_name=${model}_${dataset}_numshot${num_shot}_seed${seed}_ia3_pretrained100k few_shot_random_seed=${seed} seed=${seed} allow_skip_exp=${allow_skip_exp} eval_before_training=${eval_before_training} eval_epoch_interval=${eval_epoch_interval} \
         batch_size=${train_batch_size} grad_accum_factor=${grad_accum_factor} lr=${lr}
