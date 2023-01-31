@@ -24,7 +24,7 @@ def get_epoch_wide_results(exp_name_template, datasets):
         return results
 
     results = defaultdict(list)
-    all_files.sort(key=lambda x: (int((re.findall(r".*_numshot(\d+|all).*", x)[0] if re.findall(r".*_numshot(\d+|all).*", x)[0] != 'all' else 99999)), x), reverse=True)
+    all_files.sort(key=lambda x: (int((re.findall(r".*_numshot(\d+|all).*", x)[0] if re.findall(r".*_numshot(\d+|all).*", x)[0] != 'all' else 99999)), x), reverse=False)
     for fname in all_files:
         if any([d in fname for d in datasets]):
             name = fname.split('_seed')[0]
@@ -51,6 +51,9 @@ def make_epoch_graph(args):
             ax.plot(epochs, means, label=k)
             ax.fill_between(epochs, (means - stds), (means + stds), alpha=.1)
             print(f"{k}: {means[epochs.index(epoch_result)]:.2f}_{{{stds[epochs.index(epoch_result)]:.2f}}} [{len(v)}]")
+            # Output concise form for final results table
+            # print(f"${means[epochs.index(epoch_result)]:.2f}_{{{stds[epochs.index(epoch_result)]:.2f}}}$    ", end='& ')
+        print('*  \\\\', end='')
         plt.legend(loc='lower right')
         plt.xlabel(f"steps of {epoch_steps} epochs")
         if datasets[0] == 'car':

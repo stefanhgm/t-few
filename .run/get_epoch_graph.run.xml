@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/scripts/get_epoch_graph.py" />
-    <option name="PARAMETERS" value="-e t011* -d creditg" />
+    <option name="PARAMETERS" value="-e t011b*_gpt*,t011b*_t0*,t011b*_ttt*,t011b*_list_num*,t011b*_list_values*,t011b*_list_perm*,t011b*_list_shuffled*,t03b*_* -d creditg" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
