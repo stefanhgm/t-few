@@ -5,14 +5,13 @@ import json
 from math import sqrt
 
 import matplotlib.pyplot as plt
-
+import matplotlib
 
 import numpy as np
 import argparse
 
-from matplotlib import RcParams
-
-from src.scripts.get_epoch_graph import get_epoch_wide_results
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 
 performance_per_dataset_setting = {
@@ -260,12 +259,12 @@ def create_performance_graph(args):
     # Determine means and sd for each dataset
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     # plt.rcParams["font.family"] = "Times"
-    included_performance_scores = ['Log. Reg.', 'LightGBM', 'XGBoost', 'SAINT', 'TabNet', 'NODE', 'TabPFN', 'GPT-3', 'TabLLM']
-    markers = ['x', '*', '8', 'd', '^', 'p', 'P', 'X', 'o']
-    colors = ['C1', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C2', 'C0']
-    # included_performance_scores = ['List Template', 'Text Template', 'Table-To-Text', 'Text T0', 'Text GPT-3', 'List Only Values', 'List Perm. Names', 'List Perm. Values']
-    # markers = ['x', 'o', '*', '8', 'd', '^', 'p', 'P', 'X']
-    # colors = ['C1', 'C0', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C2']
+    # included_performance_scores = ['Log. Reg.', 'LightGBM', 'XGBoost', 'SAINT', 'TabNet', 'NODE', 'TabPFN', 'GPT-3', 'TabLLM']
+    # markers = ['x', '*', '8', 'd', '^', 'p', 'P', 'X', 'o']
+    # colors = ['C1', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C2', 'C0']
+    included_performance_scores = ['List Template', 'Text Template', 'Table-To-Text', 'Text T0', 'Text GPT-3', 'List Only Values', 'List Perm. Names', 'List Perm. Values']
+    markers = ['x', 'o', '*', '8', 'd', '^', 'p', 'P', 'X']
+    colors = ['C1', 'C0', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C2']
 
 
     # Create list of performance results for each setting
@@ -289,8 +288,8 @@ def create_performance_graph(args):
 
         ax.plot(range(setting in non_zero_shot, 1 if setting in zero_shot else len(orig_shots)), means, marker=markers[k], label=setting, color=colors[k], markersize=12 if setting == 'GPT-3' else None)
         ax.fill_between(range(setting in non_zero_shot, 1 if setting in zero_shot else len(orig_shots)), (means - stds), (means + stds), alpha=.1, color=colors[k])
-        ax.set_ylabel('Average AUC across tabular datasets')
-        ax.set_xlabel('Number of shots')
+        ax.set_ylabel('Average AUC (SD) across tabular datasets')
+        ax.set_xlabel('Number of labeled training examples (shots)')
         ax.legend(loc='lower right')._legend_box.align='right'
         # legend._legend_box.align = 'right'
         # ax.set_xscale('symlog', base=2)
@@ -300,10 +299,9 @@ def create_performance_graph(args):
 
     plt.tight_layout()
     # plt.show()
-    plt.savefig('figure_baselines.pdf', dpi=600)
-    # plt.savefig('figure_serialization.pdf', dpi=600)
+    # plt.savefig('figure_baselines.pdf', dpi=600)
+    plt.savefig('figure_serialization.pdf', dpi=600)
     print()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
